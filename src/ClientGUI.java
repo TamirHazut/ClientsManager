@@ -60,10 +60,15 @@ public class ClientGUI extends BorderPane {
 	private TextField ageTF;
 	private ComboBox<Integer> dayOfBirthCB;
 	private ComboBox<Month> monthOfBirthCB;
+	
+	public ClientGUI(Client client, boolean existingClient) {
+		setCurrentClient(client);
+		setDisableEditTextField(existingClient);
+		initClientWindow();
+	}
 
 	public ClientGUI(Client client) {
-		setCurrentClient(client);
-		initClientWindow();
+		this(client, true);
 	}
 
 	private void initClientWindow() {
@@ -186,7 +191,7 @@ public class ClientGUI extends BorderPane {
 
 		Label idLabel = new Label("ID:");
 		idTF = new TextField(getCurrentClient().getID().toString());
-		idTF.setDisable(isDisableEditTextField());
+		idTF.setDisable(true);
 		HBox firstRow = setRow(firstNameLabel, firstNameTF, lastNameLabel, lastNameTF, idLabel, idTF);
 		clientDetails.add(firstRow, 0, 0);
 		GridPane.setMargin(firstRow, fieldsInsets);

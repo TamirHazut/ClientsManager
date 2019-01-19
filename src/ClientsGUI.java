@@ -63,7 +63,8 @@ public class ClientsGUI extends BorderPane {
 
 	private void initTableView() {
 		setColumns();
-		addClientsToList();
+		ClientsDB.loadDB(this.clientList);
+//		addClientsToList();
 		this.clientsTable.setItems(this.clientList);
 		this.setCenter(clientsTable);
 		BorderPane.setAlignment(clientsTable, Pos.CENTER);
@@ -80,7 +81,7 @@ public class ClientsGUI extends BorderPane {
 		BorderPane.setMargin(bottomPane, panesInsets);
 		addButton.setOnAction(e -> {
 			Integer id = requestID();
-			new ClientGUI(new Client(id));
+			new ClientGUI(new Client(id),false);
 		});
 	}
 
