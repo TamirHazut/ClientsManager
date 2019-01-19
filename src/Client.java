@@ -6,10 +6,15 @@ import javafx.beans.property.StringProperty;
 
 public class Client {
 	private final static Integer DEFAULT_ID = 123456789;
+	private final static String DEFAULT_STRING = "";
+	private final static String DEFAULT_GENDER = "Male";
+	private final static Integer DEFAULT_INTEGER = 0;
+	private final static String DEFAULT_MARITAL_STATUS = "Single";
 	private SimpleStringProperty firstName;
 	private SimpleStringProperty lastName;
 	private SimpleStringProperty id;
 	private SimpleStringProperty phoneNumber;
+	private String email;
 	private String gender;
 	private LocalDate birthDay;
 	private String city;
@@ -19,13 +24,20 @@ public class Client {
 	private Integer zipcode;
 	private String maritalStatus;
 
-	public Client(String firstName, String lastName, Integer id, String phoneNumber, LocalDate birthDay, String gender,
-			String city, String streetName, Integer houseNumber, Integer apartment, Integer zipcode,
+	public Client(Integer id) {
+		this(DEFAULT_STRING, DEFAULT_STRING, id, DEFAULT_STRING, DEFAULT_STRING, LocalDate.now(),
+				DEFAULT_GENDER, DEFAULT_STRING, DEFAULT_STRING, DEFAULT_INTEGER, DEFAULT_INTEGER, DEFAULT_INTEGER,
+				DEFAULT_MARITAL_STATUS);
+	}
+
+	public Client(String firstName, String lastName, Integer id, String phoneNumber, String email, LocalDate birthDay,
+			String gender, String city, String streetName, Integer houseNumber, Integer apartment, Integer zipcode,
 			String maritalStatus) {
 		this.firstName = new SimpleStringProperty(firstName);
 		this.lastName = new SimpleStringProperty(lastName);
 		this.id = new SimpleStringProperty(id.toString());
 		this.phoneNumber = new SimpleStringProperty(phoneNumber);
+		this.email = email;
 		this.birthDay = birthDay;
 		this.gender = gender;
 		this.city = city;
@@ -68,6 +80,14 @@ public class Client {
 
 	protected String getPhoneNumber() {
 		return phoneNumber.get();
+	}
+
+	protected String getEmail() {
+		return email;
+	}
+
+	protected void setEmail(String email) {
+		this.email = email;
 	}
 
 	protected String getGender() {

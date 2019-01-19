@@ -25,9 +25,9 @@ public class ClientGUI extends BorderPane {
 	private final static int MIN_SCEONDERY_STAGE_WIDTH = 650;
 	private final static int PICTURE_FRAME_WIDTH = 200;
 	private final static int PICTURE_FRAME_HIEGHT = 400;
-	private final static int YEAR_TEXT_FIELD_SIZE = 50;
-	private final static int AGE_TEXT_FIELD_SIZE = 50;
+	private final static int SMALL_TEXT_FIELD_SIZE = 50;
 	private final static int NUM_OF_DAYS_A_MONTH = 31;
+	private final static int EMAIL_TEXT_FIELD_LENGTH = 325;
 
 	private final static String[] GENDERS_LIST = { "Male", "Female" };
 	private final static String[] MARITAL_STATUS_LIST = { "Single", "Married", "Separated", "Divorced", "Widowed" };
@@ -37,16 +37,17 @@ public class ClientGUI extends BorderPane {
 
 	private Shape pictureFrame = new Rectangle(PICTURE_FRAME_WIDTH, PICTURE_FRAME_HIEGHT);
 
-	private VBox centerPane = new VBox();
+	private final Insets fieldsInsets = new Insets(5);
+	private final Insets otherInsets = new Insets(10);
 
-	private GridPane basicClientDetails = new GridPane();
+	private GridPane clientDetails = new GridPane();
 	private TextField firstNameTF;
 	private TextField lastNameTF;
 	private TextField idTF;
 	private TextField phoneTF;
+	private TextField emailTF;
 	private ComboBox<String> genderCB;
 
-	private GridPane extendedClientDetails = new GridPane();
 	private ComboBox<String> maritalStatusCB;
 
 	private TextField cityTF;
@@ -55,7 +56,6 @@ public class ClientGUI extends BorderPane {
 	private TextField apartmentTF;
 	private TextField zipcodeTF;
 
-	private HBox birthDayLayout = new HBox();
 	private TextField yearOfBirthTF;
 	private TextField ageTF;
 	private ComboBox<Integer> dayOfBirthCB;
@@ -67,8 +67,7 @@ public class ClientGUI extends BorderPane {
 	}
 
 	private void initClientWindow() {
-		setBasicClientWindowLayout();
-		setExtendedClientWindowLayout();
+		setClientWindowLayout();
 		changeFieldsStatus();
 
 		Stage seconderyStage = new Stage();
@@ -89,6 +88,9 @@ public class ClientGUI extends BorderPane {
 		}
 		if (!phoneTF.getText().isEmpty() && !(phoneTF.getText().equals(getCurrentClient().getPhoneNumber()))) {
 			getCurrentClient().setPhoneNumber(phoneTF.getText());
+		}
+		if (!emailTF.getText().isEmpty() && !(emailTF.getText().equals(getCurrentClient().getEmail()))) {
+			getCurrentClient().setEmail(emailTF.getText());
 		}
 		checkForValidDate();
 		if (!(maritalStatusCB.getValue().equals(getCurrentClient().getMaritalStatus()))) {
@@ -161,6 +163,7 @@ public class ClientGUI extends BorderPane {
 		lastNameTF.setDisable(isDisableEditTextField());
 		genderCB.setDisable(isDisableEditTextField());
 		phoneTF.setDisable(isDisableEditTextField());
+		emailTF.setDisable(isDisableEditTextField());
 		yearOfBirthTF.setDisable(isDisableEditTextField());
 		dayOfBirthCB.setDisable(isDisableEditTextField());
 		monthOfBirthCB.setDisable(isDisableEditTextField());
@@ -173,54 +176,89 @@ public class ClientGUI extends BorderPane {
 	}
 
 	/* Setters And Getters */
-	public void setBasicClientWindowLayout() {
+	public void setClientWindowLayout() {
 		HBox picturePane = new HBox(pictureFrame);
-		firstNameTF = setFieldLayout("First Name:", getCurrentClient().getFirstName(), basicClientDetails, 0, 0);
-		lastNameTF = setFieldLayout("Last Name:", getCurrentClient().getLastName(), basicClientDetails, 0, 2);
-		idTF = setFieldLayout("ID:", getCurrentClient().getID().toString(), basicClientDetails, 0, 4);
+		Label firstNameLabel = new Label("First Name:");
+		firstNameTF = new TextField(getCurrentClient().getFirstName());
+
+		Label lastNameLabel = new Label("Last Name:");
+		lastNameTF = new TextField(getCurrentClient().getLastName());
+
+		Label idLabel = new Label("ID:");
+		idTF = new TextField(getCurrentClient().getID().toString());
 		idTF.setDisable(isDisableEditTextField());
+		HBox firstRow = setRow(firstNameLabel, firstNameTF, lastNameLabel, lastNameTF, idLabel, idTF);
+		clientDetails.add(firstRow, 0, 0);
+		GridPane.setMargin(firstRow, fieldsInsets);
 
-		genderCB = setStringComboBoxLayout("Gender:", GENDERS_LIST, basicClientDetails, 1, 0);
+		Label genderLabel = new Label("Gender:");
+		genderCB = new ComboBox<>(FXCollections.observableArrayList(GENDERS_LIST));
 		genderCB.setValue(getCurrentClient().getGender());
+		HBox secondRow = setRow(genderLabel, genderCB);
+		clientDetails.add(secondRow, 0, 1);	
+		GridPane.setMargin(secondRow, fieldsInsets);
 
-		phoneTF = setFieldLayout("Phone Number:", getCurrentClient().getPhoneNumber(), basicClientDetails, 2, 0);
-		setBirthDayLayout();
+		Label phoneLabel = new Label("Phone Number:");
+		phoneTF = new TextField(getCurrentClient().getPhoneNumber());
+		Label emailLabel = new Label("EMail:");
+		emailTF = new TextField(getCurrentClient().getEmail());
+		emailTF.setMinWidth(EMAIL_TEXT_FIELD_LENGTH);
+		HBox thirdRow = setRow(phoneLabel, phoneTF,emailLabel,emailTF);
+		clientDetails.add(thirdRow, 0, 2);
+		GridPane.setMargin(thirdRow, fieldsInsets);
+
+		HBox fourthRow = setBirthDayLayout();
+		clientDetails.add(fourthRow, 0, 3);
+
+		Label maritalStatusLabel = new Label("Marital Status:");
+		maritalStatusCB = new ComboBox<>(FXCollections.observableArrayList(MARITAL_STATUS_LIST));
+		maritalStatusCB.setValue(getCurrentClient().getMaritalStatus());
+		HBox fifthRow = setRow(maritalStatusLabel, maritalStatusCB);
+		clientDetails.add(fifthRow, 0, 4);
+		GridPane.setMargin(fifthRow, fieldsInsets);
+
+		VBox sixthRow = setAddressLayout();
+		clientDetails.add(sixthRow, 0, 5);
+		GridPane.setMargin(sixthRow, fieldsInsets);
+
 		setUpdateButton();
-		centerPane.getChildren().addAll(basicClientDetails, birthDayLayout);
-		BorderPane.setMargin(centerPane, new Insets(10));
-		this.setCenter(centerPane);
-		BorderPane.setAlignment(centerPane, Pos.CENTER);
-		BorderPane.setMargin(picturePane, new Insets(10));
+		this.setCenter(clientDetails);
+		BorderPane.setAlignment(clientDetails, Pos.CENTER);
+		BorderPane.setMargin(picturePane, otherInsets);
 		this.setLeft(picturePane);
 		BorderPane.setAlignment(picturePane, Pos.TOP_LEFT);
 	}
 
-	public void setExtendedClientWindowLayout() {
-		maritalStatusCB = setStringComboBoxLayout("Marital Status:", MARITAL_STATUS_LIST, extendedClientDetails, 0, 0);
-		maritalStatusCB.setValue(getCurrentClient().getMaritalStatus());
-
-		streetNameTF = setFieldLayout("Street:", getCurrentClient().getStreetName(), extendedClientDetails, 1, 0);
-		houseNumberTF = setFieldLayout("House Number:", getCurrentClient().getHouseNumber().toString(),
-				extendedClientDetails, 1, 2);
-		apartmentTF = setFieldLayout("Apartment:", getCurrentClient().getApartment().toString(), extendedClientDetails,
-				1, 4);
-		cityTF = setFieldLayout("City:", getCurrentClient().getCity(), extendedClientDetails, 2, 0);
-		zipcodeTF = setFieldLayout("Zipcode:", getCurrentClient().getZipcode().toString(), extendedClientDetails, 2, 2);
-		centerPane.getChildren().add(extendedClientDetails);
+	public HBox setRow(Node... nodes) {
+		HBox row = new HBox(nodes);
+		row.setSpacing(5);
+		return row;
 	}
 
-	public ComboBox<String> setStringComboBoxLayout(String labelValue, String[] value, GridPane clientDetails,
-			int startingRowIndex, int startingColIndex) {
-		Label label = new Label(labelValue);
-		ObservableList<String> tempList = FXCollections.observableArrayList(value);
-		ComboBox<String> cb = new ComboBox<>(tempList);
-		clientDetails.add(label, startingColIndex, startingRowIndex);
-		clientDetails.add(cb, startingColIndex + 1, startingRowIndex);
-		GridPane.setMargin(cb, new Insets(5, 0, 5, 5));
-		return cb;
+	public VBox setAddressLayout() {
+		Label streetNameLabel = new Label("Street:");
+		streetNameTF = new TextField(getCurrentClient().getStreetName());
+		Label houseNumberLabel = new Label("House Number:");
+		houseNumberTF = new TextField(getCurrentClient().getHouseNumber().toString());
+		houseNumberTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
+		Label apartmentLabel = new Label("Apartment:");
+		apartmentTF = new TextField(getCurrentClient().getApartment().toString());
+		apartmentTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
+		HBox streetDetails = setRow(streetNameLabel, streetNameTF, houseNumberLabel, houseNumberTF, apartmentLabel,
+				apartmentTF);
+
+		Label cityLabel = new Label("City:");
+		cityTF = new TextField(getCurrentClient().getCity());
+		Label zipcodeLabel = new Label("Zipcode:");
+		zipcodeTF = new TextField(getCurrentClient().getZipcode().toString());
+		HBox cityDetails = setRow(cityLabel, cityTF, zipcodeLabel, zipcodeTF);
+
+		VBox address = new VBox(streetDetails, cityDetails);
+		address.setSpacing(5);
+		return address;
 	}
 
-	public void setBirthDayLayout() {
+	public HBox setBirthDayLayout() {
 		Label dayLabel = new Label("Day:");
 		ObservableList<Integer> listOfDays = FXCollections.observableArrayList(getDayList());
 		dayOfBirthCB = new ComboBox<>(listOfDays);
@@ -234,22 +272,23 @@ public class ClientGUI extends BorderPane {
 		Integer year = getCurrentClient().getBirthDay().getYear();
 		Label yearLabel = new Label("Year:");
 		yearOfBirthTF = new TextField(year.toString());
-		yearOfBirthTF.setMaxWidth(YEAR_TEXT_FIELD_SIZE);
+		yearOfBirthTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
 
 		Label ageLabel = new Label("Age:");
 		ageTF = new TextField(getCurrentClient().getAge().toString());
 		ageTF.setDisable(true);
-		ageTF.setMaxWidth(AGE_TEXT_FIELD_SIZE);
-		birthDayLayout.getChildren().addAll(dayLabel, dayOfBirthCB, monthLabel, monthOfBirthCB, yearLabel,
-				yearOfBirthTF, ageLabel, ageTF);
+		ageTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
+		HBox birthDayLayout = new HBox(dayLabel, dayOfBirthCB, monthLabel, monthOfBirthCB, yearLabel, yearOfBirthTF,
+				ageLabel, ageTF);
 		setMarginForBirthdayNodes(dayLabel, dayOfBirthCB, monthLabel, monthOfBirthCB, yearLabel, yearOfBirthTF,
 				ageLabel, ageTF);
+		return birthDayLayout;
 	}
 
 	private void setUpdateButton() {
 		Button updateButton = new Button("Update");
 		updateButton.setPrefWidth(80);
-		BorderPane.setMargin(updateButton, new Insets(10));
+		BorderPane.setMargin(updateButton, otherInsets);
 		this.setBottom(updateButton);
 		BorderPane.setAlignment(updateButton, Pos.BOTTOM_RIGHT);
 		updateButton.setOnAction(e -> {
@@ -268,7 +307,7 @@ public class ClientGUI extends BorderPane {
 
 	public void setMarginForBirthdayNodes(Node... nodes) {
 		for (Node node : nodes) {
-			HBox.setMargin(node, new Insets(5, 5, 5, 0));
+			HBox.setMargin(node, fieldsInsets);
 		}
 	}
 
@@ -278,16 +317,6 @@ public class ClientGUI extends BorderPane {
 			listOfDays[i - 1] = i;
 		}
 		return listOfDays;
-	}
-
-	public TextField setFieldLayout(String label, String value, GridPane clientDetails, int startingRowIndex,
-			int startingColIndex) {
-		Label clientLabel = new Label(label);
-		TextField clientTF = new TextField(value);
-		clientDetails.add(clientLabel, startingColIndex, startingRowIndex);
-		clientDetails.add(clientTF, startingColIndex + 1, startingRowIndex);
-		GridPane.setMargin(clientTF, new Insets(5, 5, 5, 5));
-		return clientTF;
 	}
 
 	protected Client getCurrentClient() {
