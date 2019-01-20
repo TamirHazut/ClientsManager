@@ -121,7 +121,7 @@ public class ClientsGUI extends BorderPane {
 	}
 
 	private void getDataBase() {
-		File file = new File(ClientsDB.FILE_NAME);
+		File file = new File(ClientsDB.FILE_PATH);
 		if (file.exists()) {
 			ClientsDB.loadDB(this.clientsList);
 		} else {

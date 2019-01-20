@@ -10,7 +10,8 @@ import javafx.collections.ObservableList;
 
 abstract class ClientsDB {
 	public final static String FILE_NAME = "Clients.db";
-	private final static String CONNECTION_PROPERTY = "jdbc:sqlite:" + FILE_NAME;
+	public final static String FILE_PATH = System.getenv("APPDATA") + "\\" + FILE_NAME;
+	private final static String CONNECTION_PROPERTY = "jdbc:sqlite:" + FILE_PATH;
 
 	public static boolean createTable() {
 		try (Connection connection = DriverManager.getConnection(CONNECTION_PROPERTY);) {
