@@ -4,11 +4,12 @@ import java.time.Month;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -34,6 +35,7 @@ public class ClientGUI extends BorderPane {
 
 	private Client currentClient;
 	private boolean disableEditTextField = true;
+	private boolean newClient;
 
 	private Shape pictureFrame = new Rectangle(PICTURE_FRAME_WIDTH, PICTURE_FRAME_HIEGHT);
 
@@ -61,9 +63,18 @@ public class ClientGUI extends BorderPane {
 	private ComboBox<Integer> dayOfBirthCB;
 	private ComboBox<Month> monthOfBirthCB;
 	
-	public ClientGUI(Client client, boolean existingClient) {
+	private EditSaveButton editSaveButton;
+	
+	public EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
+		public void handle(ActionEvent arg0) {
+			((Command) arg0.getSource()).Execute();
+		}
+	};
+	
+	public ClientGUI(Client client, boolean newClient) {
+		setNewClient(newClient);
 		setCurrentClient(client);
-		setDisableEditTextField(existingClient);
+		disableEditTextField(!isANewClient());
 		initClientWindow();
 	}
 
@@ -81,10 +92,10 @@ public class ClientGUI extends BorderPane {
 		seconderyStage.setResizable(false);
 		seconderyStage.setMinHeight(MIN_SCEONDERY_STAGE_HEIGTH);
 		seconderyStage.setMinWidth(MIN_SCEONDERY_STAGE_WIDTH);
-		seconderyStage.show();
+		seconderyStage.showAndWait();
 	}
 
-	private void saveNewState() {
+	protected void saveNewState() {
 		if (!firstNameTF.getText().isEmpty() && !(firstNameTF.getText().equals(getCurrentClient().getFirstName()))) {
 			getCurrentClient().setFirstName(firstNameTF.getText());
 		}
@@ -164,21 +175,25 @@ public class ClientGUI extends BorderPane {
 	}
 
 	public void changeFieldsStatus() {
-		firstNameTF.setDisable(isDisableEditTextField());
-		lastNameTF.setDisable(isDisableEditTextField());
-		genderCB.setDisable(isDisableEditTextField());
-		phoneTF.setDisable(isDisableEditTextField());
-		emailTF.setDisable(isDisableEditTextField());
-		yearOfBirthTF.setDisable(isDisableEditTextField());
-		dayOfBirthCB.setDisable(isDisableEditTextField());
-		monthOfBirthCB.setDisable(isDisableEditTextField());
-		cityTF.setDisable(isDisableEditTextField());
-		streetNameTF.setDisable(isDisableEditTextField());
-		houseNumberTF.setDisable(isDisableEditTextField());
-		apartmentTF.setDisable(isDisableEditTextField());
-		zipcodeTF.setDisable(isDisableEditTextField());
-		maritalStatusCB.setDisable(isDisableEditTextField());
+		firstNameTF.setDisable(isDisabledEditTextField());
+		lastNameTF.setDisable(isDisabledEditTextField());
+		genderCB.setDisable(isDisabledEditTextField());
+		phoneTF.setDisable(isDisabledEditTextField());
+		emailTF.setDisable(isDisabledEditTextField());
+		yearOfBirthTF.setDisable(isDisabledEditTextField());
+		dayOfBirthCB.setDisable(isDisabledEditTextField());
+		monthOfBirthCB.setDisable(isDisabledEditTextField());
+		cityTF.setDisable(isDisabledEditTextField());
+		streetNameTF.setDisable(isDisabledEditTextField());
+		houseNumberTF.setDisable(isDisabledEditTextField());
+		apartmentTF.setDisable(isDisabledEditTextField());
+		zipcodeTF.setDisable(isDisabledEditTextField());
+		maritalStatusCB.setDisable(isDisabledEditTextField());
 	}
+	
+//	public void actionHandled(ActionEvent e) {
+//		((Command) e.getSource()).Execute();
+//	}
 
 	/* Setters And Getters */
 	public void setClientWindowLayout() {
@@ -291,23 +306,28 @@ public class ClientGUI extends BorderPane {
 	}
 
 	private void setUpdateButton() {
-		Button updateButton = new Button("Update");
-		updateButton.setPrefWidth(80);
-		BorderPane.setMargin(updateButton, otherInsets);
-		this.setBottom(updateButton);
-		BorderPane.setAlignment(updateButton, Pos.BOTTOM_RIGHT);
-		updateButton.setOnAction(e -> {
-			if (isDisableEditTextField()) {
-				setDisableEditTextField(false);
-				changeFieldsStatus();
-				updateButton.setText("Save");
-			} else {
-				setDisableEditTextField(true);
-				saveNewState();
-				changeFieldsStatus();
-				updateButton.setText("Update");
-			}
-		});
+		editSaveButton = new EditSaveButton(this,isANewClient());
+//		updateButton.setPrefWidth(80);
+		BorderPane.setMargin(editSaveButton, otherInsets);
+		this.setBottom(editSaveButton);
+		BorderPane.setAlignment(editSaveButton, Pos.BOTTOM_RIGHT);
+		editSaveButton.setOnAction(ae);
+//		updateButton.setOnAction(e -> {
+//			if (isDisableEditTextField()) {
+//				setDisableEditTextField(false);
+//				changeFieldsStatus();
+//				updateButton.setText("Save");
+//			} else {
+//				setDisableEditTextField(true);
+//				saveNewState();
+//				if (!isANewClient()) {
+//				} else {
+//					ClientsDB.writeNewClient(getCurrentClient());
+//				}
+//				changeFieldsStatus();
+//				updateButton.setText("Update");
+//			}
+//		});
 	}
 
 	public void setMarginForBirthdayNodes(Node... nodes) {
@@ -332,12 +352,22 @@ public class ClientGUI extends BorderPane {
 		this.currentClient = currentClient;
 	}
 
-	protected boolean isDisableEditTextField() {
+	protected boolean isDisabledEditTextField() {
 		return disableEditTextField;
 	}
 
-	protected void setDisableEditTextField(boolean disableEditTextField) {
+	protected void disableEditTextField(boolean disableEditTextField) {
 		this.disableEditTextField = disableEditTextField;
 	}
+
+	protected boolean isANewClient() {
+		return newClient;
+	}
+
+	protected void setNewClient(boolean newClient) {
+		this.newClient = newClient;
+	}
+	
+	
 
 }
