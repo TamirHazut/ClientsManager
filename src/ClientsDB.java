@@ -9,7 +9,25 @@ import java.time.Month;
 import javafx.collections.ObservableList;
 
 abstract class ClientsDB {
-	private final static String CONNECTION_PROPERTY = "jdbc:sqlite:Clients.db";
+	public final static String FILE_NAME = "Clients.db";
+	private final static String CONNECTION_PROPERTY = "jdbc:sqlite:" + FILE_NAME;
+
+	public static boolean createTable() {
+		try (Connection connection = DriverManager.getConnection(CONNECTION_PROPERTY);) {
+			String query = "CREATE TABLE Clients (`FirstName`	TEXT NOT NULL," + "`LastName`	TEXT NOT NULL,"
+					+ "`ID`	NUMERIC NOT NULL UNIQUE," + "`PhoneNumber`	TEXT NOT NULL UNIQUE," + "`Email`	TEXT,"
+					+ "`Gender`	TEXT NOT NULL," + "`MaritalStatus`	TEXT NOT NULL," + "`DayOfBirth`	INTEGER NOT NULL,"
+					+ "`MonthOfBirth`	INTEGER NOT NULL," + "`YearOfBirth`	INTEGER NOT NULL," + "`City`	TEXT,"
+					+ "`Street`	TEXT," + "`HouseNumber`	INTEGER," + "`Apartment`	INTEGER," + "`Zipcode`	INTEGER,"
+					+ "PRIMARY KEY(`ID`));";
+			PreparedStatement prestate = connection.prepareStatement(query);
+			prestate.executeUpdate();
+			prestate.close();
+		} catch (SQLException ex) {
+			return false;
+		}
+		return true;
+	}
 
 	public static boolean loadDB(ObservableList<Client> list) {
 		try (Connection connection = DriverManager.getConnection(CONNECTION_PROPERTY);) {
@@ -39,6 +57,36 @@ abstract class ClientsDB {
 			}
 			prestate.close();
 			result.close();
+		} catch (SQLException ex) {
+			return false;
+		}
+		return true;
+	}
+
+	public static boolean updateClient(Client client) {
+		try (Connection connection = DriverManager.getConnection(CONNECTION_PROPERTY);) {
+			String query = "UPDATE Clients SET " + "FirstName = ?," + "LastName = ?," + "PhoneNumber = ?,"
+					+ "Email = ?," + "Gender = ?," + "MaritalStatus = ?," + "DayOfBirth = ?," + "MonthOfBirth = ?,"
+					+ "YearOfBirth = ?," + "City = ?," + "Street = ?," + "HouseNumber = ?," + "Apartment = ?,"
+					+ "Zipcode = ?" + "WHERE ID = ?";
+			PreparedStatement prestate = connection.prepareStatement(query);
+			prestate.setString(1, client.getFirstName());
+			prestate.setString(2, client.getLastName());
+			prestate.setString(3, client.getPhoneNumber());
+			prestate.setString(4, client.getEmail());
+			prestate.setString(5, client.getGender());
+			prestate.setString(6, client.getMaritalStatus());
+			prestate.setInt(7, client.getBirthDay().getDayOfMonth());
+			prestate.setInt(8, client.getBirthDay().getMonthValue());
+			prestate.setInt(9, client.getBirthDay().getYear());
+			prestate.setString(10, client.getCity());
+			prestate.setString(11, client.getStreetName());
+			prestate.setInt(12, client.getHouseNumber());
+			prestate.setInt(13, client.getApartment());
+			prestate.setInt(14, client.getZipcode());
+			prestate.setInt(15, client.getID());
+			prestate.executeUpdate();
+			prestate.close();
 		} catch (SQLException ex) {
 			return false;
 		}

@@ -10,9 +10,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -29,6 +31,7 @@ public class ClientGUI extends BorderPane {
 	private final static int SMALL_TEXT_FIELD_SIZE = 50;
 	private final static int NUM_OF_DAYS_A_MONTH = 31;
 	private final static int EMAIL_TEXT_FIELD_LENGTH = 325;
+	private final static int MAX_PHONE_NUMBER_LENGTH = 10;
 
 	private final static String[] GENDERS_LIST = { "Male", "Female" };
 	private final static String[] MARITAL_STATUS_LIST = { "Single", "Married", "Separated", "Divorced", "Widowed" };
@@ -62,15 +65,15 @@ public class ClientGUI extends BorderPane {
 	private TextField ageTF;
 	private ComboBox<Integer> dayOfBirthCB;
 	private ComboBox<Month> monthOfBirthCB;
-	
+
 	private EditSaveButton editSaveButton;
-	
+
 	public EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
 		public void handle(ActionEvent arg0) {
 			((Command) arg0.getSource()).Execute();
 		}
 	};
-	
+
 	public ClientGUI(Client client, boolean newClient) {
 		setNewClient(newClient);
 		setCurrentClient(client);
@@ -95,24 +98,55 @@ public class ClientGUI extends BorderPane {
 		seconderyStage.showAndWait();
 	}
 
-	protected void saveNewState() {
-		if (!firstNameTF.getText().isEmpty() && !(firstNameTF.getText().equals(getCurrentClient().getFirstName()))) {
-			getCurrentClient().setFirstName(firstNameTF.getText());
+	protected boolean saveNewState() {
+		try {
+			if (firstNameTF.getText().isEmpty() || lastNameTF.getText().isEmpty() || phoneTF.getText().isEmpty()) {
+				throw new MissingDataException(
+						"Error!\nOne of the following fields are empty: Firstname, Lastname, Phonenumber.");
+			}
+			if (!(firstNameTF.getText().equals(getCurrentClient().getFirstName()))) {
+				getCurrentClient().setFirstName(firstNameTF.getText());
+			}
+			if (!(lastNameTF.getText().equals(getCurrentClient().getLastName()))) {
+				getCurrentClient().setLastName(lastNameTF.getText());
+			}
+			String phone = Client.fixPhoneNumber(phoneTF.getText());
+			checkPhoneNumber(phone);
+			if (!(phone.equals(getCurrentClient().getPhoneNumber()))) {
+				getCurrentClient().setPhoneNumber(phone);
+			}
+			if (!emailTF.getText().isEmpty() && !(emailTF.getText().equals(getCurrentClient().getEmail()))) {
+				getCurrentClient().setEmail(emailTF.getText());
+			}
+			checkForValidDate();
+			if (!(maritalStatusCB.getValue().equals(getCurrentClient().getMaritalStatus()))) {
+				getCurrentClient().setMaritalStatus(maritalStatusCB.getValue());
+			}
+			saveStreetState();
+			return true;
+		} catch (MissingDataException ex) {
+			showAlert(ex.getMessage());
+			return false;
 		}
-		if (!lastNameTF.getText().isEmpty() && !(lastNameTF.getText().equals(getCurrentClient().getLastName()))) {
-			getCurrentClient().setLastName(lastNameTF.getText());
+	}
+
+	private void checkPhoneNumber(String phone) throws MissingDataException {
+		try {
+			if (phone.length() > MAX_PHONE_NUMBER_LENGTH || phone.charAt(0) != '0') {
+				throw new Exception();
+			}
+			Integer.parseInt(phone);
+		} catch (Exception e) {
+			throw new MissingDataException("Error!\nInvalid phone number.");
 		}
-		if (!phoneTF.getText().isEmpty() && !(phoneTF.getText().equals(getCurrentClient().getPhoneNumber()))) {
-			getCurrentClient().setPhoneNumber(phoneTF.getText());
-		}
-		if (!emailTF.getText().isEmpty() && !(emailTF.getText().equals(getCurrentClient().getEmail()))) {
-			getCurrentClient().setEmail(emailTF.getText());
-		}
-		checkForValidDate();
-		if (!(maritalStatusCB.getValue().equals(getCurrentClient().getMaritalStatus()))) {
-			getCurrentClient().setMaritalStatus(maritalStatusCB.getValue());
-		}
-		saveStreetState();
+	}
+
+	private void showAlert(String message) {
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setTitle("Error");
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 
 	private void saveStreetState() {
@@ -152,7 +186,7 @@ public class ClientGUI extends BorderPane {
 		}
 	}
 
-	private void checkForValidDate() {
+	private void checkForValidDate() throws MissingDataException {
 		int day = dayOfBirthCB.getValue();
 		Month month = monthOfBirthCB.getValue();
 		int year = getCurrentClient().getBirthDay().getYear();
@@ -166,7 +200,7 @@ public class ClientGUI extends BorderPane {
 		try {
 			tempDate = LocalDate.of(year, month, day);
 		} catch (DateTimeException ex) {
-			tempDate = null;
+			throw new MissingDataException("Error!\nDate of birth is not valid");
 		}
 		if ((tempDate != null) && (tempDate != getCurrentClient().getBirthDay())) {
 			getCurrentClient().setBirthDay(tempDate);
@@ -175,22 +209,22 @@ public class ClientGUI extends BorderPane {
 	}
 
 	public void changeFieldsStatus() {
-		firstNameTF.setDisable(isDisabledEditTextField());
-		lastNameTF.setDisable(isDisabledEditTextField());
-		genderCB.setDisable(isDisabledEditTextField());
-		phoneTF.setDisable(isDisabledEditTextField());
-		emailTF.setDisable(isDisabledEditTextField());
-		yearOfBirthTF.setDisable(isDisabledEditTextField());
-		dayOfBirthCB.setDisable(isDisabledEditTextField());
-		monthOfBirthCB.setDisable(isDisabledEditTextField());
-		cityTF.setDisable(isDisabledEditTextField());
-		streetNameTF.setDisable(isDisabledEditTextField());
-		houseNumberTF.setDisable(isDisabledEditTextField());
-		apartmentTF.setDisable(isDisabledEditTextField());
-		zipcodeTF.setDisable(isDisabledEditTextField());
-		maritalStatusCB.setDisable(isDisabledEditTextField());
+		firstNameTF.setDisable(disabledEditTextField());
+		lastNameTF.setDisable(disabledEditTextField());
+		genderCB.setDisable(disabledEditTextField());
+		phoneTF.setDisable(disabledEditTextField());
+		emailTF.setDisable(disabledEditTextField());
+		yearOfBirthTF.setDisable(disabledEditTextField());
+		dayOfBirthCB.setDisable(disabledEditTextField());
+		monthOfBirthCB.setDisable(disabledEditTextField());
+		cityTF.setDisable(disabledEditTextField());
+		streetNameTF.setDisable(disabledEditTextField());
+		houseNumberTF.setDisable(disabledEditTextField());
+		apartmentTF.setDisable(disabledEditTextField());
+		zipcodeTF.setDisable(disabledEditTextField());
+		maritalStatusCB.setDisable(disabledEditTextField());
 	}
-	
+
 //	public void actionHandled(ActionEvent e) {
 //		((Command) e.getSource()).Execute();
 //	}
@@ -215,7 +249,7 @@ public class ClientGUI extends BorderPane {
 		genderCB = new ComboBox<>(FXCollections.observableArrayList(GENDERS_LIST));
 		genderCB.setValue(getCurrentClient().getGender());
 		HBox secondRow = setRow(genderLabel, genderCB);
-		clientDetails.add(secondRow, 0, 1);	
+		clientDetails.add(secondRow, 0, 1);
 		GridPane.setMargin(secondRow, fieldsInsets);
 
 		Label phoneLabel = new Label("Phone Number:");
@@ -223,7 +257,7 @@ public class ClientGUI extends BorderPane {
 		Label emailLabel = new Label("EMail:");
 		emailTF = new TextField(getCurrentClient().getEmail());
 		emailTF.setMinWidth(EMAIL_TEXT_FIELD_LENGTH);
-		HBox thirdRow = setRow(phoneLabel, phoneTF,emailLabel,emailTF);
+		HBox thirdRow = setRow(phoneLabel, phoneTF, emailLabel, emailTF);
 		clientDetails.add(thirdRow, 0, 2);
 		GridPane.setMargin(thirdRow, fieldsInsets);
 
@@ -306,28 +340,11 @@ public class ClientGUI extends BorderPane {
 	}
 
 	private void setUpdateButton() {
-		editSaveButton = new EditSaveButton(this,isANewClient());
-//		updateButton.setPrefWidth(80);
+		editSaveButton = new EditSaveButton(this, isANewClient());
 		BorderPane.setMargin(editSaveButton, otherInsets);
 		this.setBottom(editSaveButton);
 		BorderPane.setAlignment(editSaveButton, Pos.BOTTOM_RIGHT);
 		editSaveButton.setOnAction(ae);
-//		updateButton.setOnAction(e -> {
-//			if (isDisableEditTextField()) {
-//				setDisableEditTextField(false);
-//				changeFieldsStatus();
-//				updateButton.setText("Save");
-//			} else {
-//				setDisableEditTextField(true);
-//				saveNewState();
-//				if (!isANewClient()) {
-//				} else {
-//					ClientsDB.writeNewClient(getCurrentClient());
-//				}
-//				changeFieldsStatus();
-//				updateButton.setText("Update");
-//			}
-//		});
 	}
 
 	public void setMarginForBirthdayNodes(Node... nodes) {
@@ -352,7 +369,7 @@ public class ClientGUI extends BorderPane {
 		this.currentClient = currentClient;
 	}
 
-	protected boolean isDisabledEditTextField() {
+	protected boolean disabledEditTextField() {
 		return disableEditTextField;
 	}
 
@@ -367,7 +384,5 @@ public class ClientGUI extends BorderPane {
 	protected void setNewClient(boolean newClient) {
 		this.newClient = newClient;
 	}
-	
-	
 
 }

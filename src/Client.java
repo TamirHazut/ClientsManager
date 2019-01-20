@@ -25,8 +25,8 @@ public class Client {
 	private String maritalStatus;
 
 	public Client(Integer id) {
-		this(DEFAULT_STRING, DEFAULT_STRING, id, DEFAULT_STRING, DEFAULT_STRING, LocalDate.now(),
-				DEFAULT_GENDER, DEFAULT_STRING, DEFAULT_STRING, DEFAULT_INTEGER, DEFAULT_INTEGER, DEFAULT_INTEGER,
+		this(DEFAULT_STRING, DEFAULT_STRING, id, DEFAULT_STRING, DEFAULT_STRING, LocalDate.now(), DEFAULT_GENDER,
+				DEFAULT_STRING, DEFAULT_STRING, DEFAULT_INTEGER, DEFAULT_INTEGER, DEFAULT_INTEGER,
 				DEFAULT_MARITAL_STATUS);
 	}
 
@@ -148,6 +148,15 @@ public class Client {
 
 	protected void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber.set(phoneNumber);
+	}
+
+	public static final String fixPhoneNumber(String phoneNumber) {
+		String[] phone = phoneNumber.split("[-]+");
+		StringBuilder newPhoneNumber = new StringBuilder();
+		for (int i = 0; i < phone.length; i++) {
+			newPhoneNumber.append(phone[i]);
+		}
+		return newPhoneNumber.toString();
 	}
 
 	protected LocalDate getBirthDay() {

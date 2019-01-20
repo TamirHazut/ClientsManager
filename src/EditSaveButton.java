@@ -11,15 +11,20 @@ public class EditSaveButton extends CommandButton {
 
 	@Override
 	public void Execute() {
-		gui.saveNewState();
+		if (!gui.saveNewState()) {
+			return;
+		}
 		if (this.newClient) {
 			if (ClientsDB.writeNewClient(gui.getCurrentClient())) {
 				this.newClient = false;
 				gui.setNewClient(false);
 			}
 		}
-		gui.disableEditTextField(!gui.isDisabledEditTextField());
+		else {
+			ClientsDB.updateClient(gui.getCurrentClient());
+		}
+		gui.disableEditTextField(!gui.disabledEditTextField());
 		gui.changeFieldsStatus();
-		this.setText(gui.isDisabledEditTextField() ? "Edit" : "Save");
+		this.setText(gui.disabledEditTextField() ? "Edit" : "Save");
 	}
 }

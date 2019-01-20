@@ -1,8 +1,8 @@
-import java.time.LocalDate;
-import java.time.Month;
+import java.io.File;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -26,12 +26,26 @@ public class ClientsGUI extends BorderPane {
 	private final static int NUM_OF_CLICKS_TO_OPEN_NEW_CLIENT_WINDOW = 2;
 	private final static int SEARCH_BAR_WIDTH = 500;
 	private final static int MAX_ID_LENGTH = 9;
-	private static ClientsGUI singletonInstance;
 	private final Insets panesInsets = new Insets(10);
 	private final Insets buttonsInsets = new Insets(0, 0, 0, 5);
 
+	private static enum SearchOptions {
+		NAME, ID, PHONE
+	}
+
+	private Integer searchBy;
+
+	private static ClientsGUI singletonInstance;
+
+	private RadioButton searchByName = new RadioButton("Name");
+	private RadioButton searchByID = new RadioButton("ID");
+	private RadioButton searchByPhone = new RadioButton("Phone number");
+	private final ToggleGroup searchOptions = new ToggleGroup();
+	private TextField searchTF = new TextField();
+
 	private TableView<Client> clientsTable = new TableView<>();
-	private ObservableList<Client> clientList = FXCollections.observableArrayList();
+	private ObservableList<Client> clientsList = FXCollections.observableArrayList();
+	private FilteredList<Client> filteredClientsList;
 
 	private AddButton addButton;
 	private DeleteButton deleteButton;
@@ -59,7 +73,6 @@ public class ClientsGUI extends BorderPane {
 		HBox radioButtonsBox = new HBox(radioButtonsLayout);
 		HBox.setHgrow(radioButtonsBox, Priority.ALWAYS);
 
-		TextField searchTF = new TextField();
 		searchTF.setPromptText("Search...");
 		searchTF.setMinWidth(SEARCH_BAR_WIDTH);
 		HBox searchBarPane = new HBox(searchTF);
@@ -69,16 +82,51 @@ public class ClientsGUI extends BorderPane {
 		HBox topPane = new HBox(radioButtonsBox, searchBarPane);
 		topPane.setPadding(panesInsets);
 		this.setTop(topPane);
+
+		setSearchListner();
+	}
+
+	private void setSearchListner() {
+		searchTF.setOnKeyReleased(keyEvent -> {
+			if (searchOptions.getSelectedToggle() == null) {
+				return;
+			}
+			SearchOptions selectedSearchOption = SearchOptions.values()[searchBy];
+			switch (selectedSearchOption) {
+			case NAME:
+
+				filteredClientsList.setPredicate(client -> (client.getFirstName() + " " + client.getLastName())
+						.toLowerCase().contains(searchTF.getText().toLowerCase().trim()));
+				break;
+			case ID:
+				filteredClientsList.setPredicate(client -> client.getID().toString().toLowerCase()
+						.contains(searchTF.getText().toLowerCase().trim()));
+				break;
+			case PHONE:
+				filteredClientsList.setPredicate(
+						client -> client.getPhoneNumber().contains(searchTF.getText().toLowerCase().trim()));
+				break;
+			}
+		});
 	}
 
 	private void initTableView() {
 		setColumns();
-		ClientsDB.loadDB(this.clientList);
-//		addClientsToList();
-		this.clientsTable.setItems(this.clientList);
+		getDataBase();
+		this.filteredClientsList = new FilteredList<Client>(this.clientsList, p -> true);
+		this.clientsTable.setItems(this.filteredClientsList);
 		this.setCenter(clientsTable);
 		BorderPane.setAlignment(clientsTable, Pos.CENTER);
 		setTableViewListner();
+	}
+
+	private void getDataBase() {
+		File file = new File(ClientsDB.FILE_NAME);
+		if (file.exists()) {
+			ClientsDB.loadDB(this.clientsList);
+		} else {
+			ClientsDB.createTable();
+		}
 	}
 
 	private void initButtons() {
@@ -142,7 +190,7 @@ public class ClientsGUI extends BorderPane {
 			client.setOnMouseClicked(e -> {
 				if ((e.getClickCount() == NUM_OF_CLICKS_TO_OPEN_NEW_CLIENT_WINDOW) && (!client.isEmpty())) {
 					Client currentClient = client.getItem();
-					new ClientGUI(currentClient);
+					new ClientGUI(currentClient, false);
 				}
 			});
 			return client;
@@ -150,36 +198,35 @@ public class ClientsGUI extends BorderPane {
 	}
 
 	private VBox setRadioButtons() {
-		final ToggleGroup searchOptions = new ToggleGroup();
-		RadioButton searchByName = new RadioButton("Name");
 		searchByName.setToggleGroup(searchOptions);
+		searchByName.setUserData(SearchOptions.NAME.ordinal());
 		VBox.setMargin(searchByName, new Insets(0, 0, 5, 0));
-		RadioButton searchByID = new RadioButton("ID");
 		searchByID.setToggleGroup(searchOptions);
+		searchByID.setUserData(SearchOptions.ID.ordinal());
 		VBox.setMargin(searchByID, new Insets(0, 0, 5, 0));
-		RadioButton searchByPhone = new RadioButton("Phone number");
 		searchByPhone.setToggleGroup(searchOptions);
+		searchByPhone.setUserData(SearchOptions.PHONE.ordinal());
+		searchOptions.selectedToggleProperty().addListener(e -> {
+			if (searchOptions.getSelectedToggle() != null) {
+				this.searchBy = (Integer) searchOptions.getSelectedToggle().getUserData();
+				resetSearch();
+			}
+		});
 		VBox radioButtonsLayout = new VBox(searchByName, searchByID, searchByPhone);
 		return radioButtonsLayout;
 	}
 
-	public void addClientsToList() {
-		clientList.add(new Client("à", "a", 1, "050", "A@a", LocalDate.of(2000, Month.AUGUST, 1), "Male", "A", "a", 1,
-				1, 111, "Single"));
-		clientList.add(new Client("B", "b", 2, "051", "B@a", LocalDate.of(2001, Month.SEPTEMBER, 2), "Female", "A", "a",
-				1, 1, 111, "Married"));
-		clientList.add(new Client("C", "c", 3, "052", "C@a", LocalDate.of(2002, Month.NOVEMBER, 3), "Male", "A", "a", 1,
-				1, 111, "Divorced"));
-		clientList.add(new Client("æ", "d", 4, "053", "D@a", LocalDate.of(2002, Month.DECEMBER, 4), "Female", "A", "a",
-				1, 1, 111, "Separated"));
+	protected void resetSearch() {
+		searchTF.setText(null);
+		filteredClientsList.setPredicate(null);
 	}
-	
+
 	protected TableView<Client> getClientsTable() {
 		return clientsTable;
 	}
 
 	protected ObservableList<Client> getClientList() {
-		return clientList;
+		return clientsList;
 	}
 
 }

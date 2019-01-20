@@ -11,6 +11,7 @@ public class AddButton extends ClientsGUIButtons {
 			this.client = new Client(id);
 			if (!newClient()) {
 				gui.getClientList().add(this.client);
+				gui.resetSearch();
 			}
 		}
 	}
