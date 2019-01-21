@@ -20,18 +20,18 @@ public class Client {
 	private String city;
 	private String streetName;
 	private Integer houseNumber;
-	private Integer apartment;
+	private String apartment;
 	private Integer zipcode;
 	private String maritalStatus;
 
 	public Client(Integer id) {
 		this(DEFAULT_STRING, DEFAULT_STRING, id, DEFAULT_STRING, DEFAULT_STRING, LocalDate.now(), DEFAULT_GENDER,
-				DEFAULT_STRING, DEFAULT_STRING, DEFAULT_INTEGER, DEFAULT_INTEGER, DEFAULT_INTEGER,
+				DEFAULT_STRING, DEFAULT_STRING, DEFAULT_INTEGER, DEFAULT_STRING, DEFAULT_INTEGER,
 				DEFAULT_MARITAL_STATUS);
 	}
 
 	public Client(String firstName, String lastName, Integer id, String phoneNumber, String email, LocalDate birthDay,
-			String gender, String city, String streetName, Integer houseNumber, Integer apartment, Integer zipcode,
+			String gender, String city, String streetName, Integer houseNumber, String apartment, Integer zipcode,
 			String maritalStatus) {
 		this.firstName = new SimpleStringProperty(firstName);
 		this.lastName = new SimpleStringProperty(lastName);
@@ -122,11 +122,11 @@ public class Client {
 		this.houseNumber = houseNumber;
 	}
 
-	protected Integer getApartment() {
+	protected String getApartment() {
 		return apartment;
 	}
 
-	protected void setApartment(Integer appartment) {
+	protected void setApartment(String appartment) {
 		this.apartment = appartment;
 	}
 

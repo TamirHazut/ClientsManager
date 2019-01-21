@@ -19,7 +19,7 @@ abstract class ClientsDB {
 					+ "`ID`	NUMERIC NOT NULL UNIQUE," + "`PhoneNumber`	TEXT NOT NULL UNIQUE," + "`Email`	TEXT,"
 					+ "`Gender`	TEXT NOT NULL," + "`MaritalStatus`	TEXT NOT NULL," + "`DayOfBirth`	INTEGER NOT NULL,"
 					+ "`MonthOfBirth`	INTEGER NOT NULL," + "`YearOfBirth`	INTEGER NOT NULL," + "`City`	TEXT,"
-					+ "`Street`	TEXT," + "`HouseNumber`	INTEGER," + "`Apartment`	INTEGER," + "`Zipcode`	INTEGER,"
+					+ "`Street`	TEXT," + "`HouseNumber`	INTEGER," + "`Apartment`	TEXT," + "`Zipcode`	INTEGER,"
 					+ "PRIMARY KEY(`ID`));";
 			PreparedStatement prestate = connection.prepareStatement(query);
 			prestate.executeUpdate();
@@ -49,7 +49,7 @@ abstract class ClientsDB {
 				String city = result.getString("City");
 				String street = result.getString("Street");
 				Integer houseNumber = result.getInt("HouseNumber");
-				Integer apartment = result.getInt("Apartment");
+				String apartment = result.getString("Apartment");
 				Integer zipcode = result.getInt("Zipcode");
 				Client client = new Client(firstName, lastName, id, phoneNumber, email,
 						LocalDate.of(yearOfBirth, monthOfBirth, dayOfBirth), gender, city, street, houseNumber,
@@ -83,7 +83,7 @@ abstract class ClientsDB {
 			prestate.setString(10, client.getCity());
 			prestate.setString(11, client.getStreetName());
 			prestate.setInt(12, client.getHouseNumber());
-			prestate.setInt(13, client.getApartment());
+			prestate.setString(13, client.getApartment());
 			prestate.setInt(14, client.getZipcode());
 			prestate.setInt(15, client.getID());
 			prestate.executeUpdate();
@@ -112,7 +112,7 @@ abstract class ClientsDB {
 			prestate.setString(11, client.getCity());
 			prestate.setString(12, client.getStreetName());
 			prestate.setInt(13, client.getHouseNumber());
-			prestate.setInt(14, client.getApartment());
+			prestate.setString(14, client.getApartment());
 			prestate.setInt(15, client.getZipcode());
 			prestate.executeUpdate();
 			prestate.close();

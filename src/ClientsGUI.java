@@ -3,6 +3,7 @@ import java.io.File;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -44,8 +45,9 @@ public class ClientsGUI extends BorderPane {
 	private TextField searchTF = new TextField();
 
 	private TableView<Client> clientsTable = new TableView<>();
-	private ObservableList<Client> clientsList = FXCollections.observableArrayList();
 	private FilteredList<Client> filteredClientsList;
+	private SortedList<Client> sortedClientsList;
+	private ObservableList<Client> clientsList = FXCollections.observableArrayList();
 
 	private AddButton addButton;
 	private DeleteButton deleteButton;
@@ -94,7 +96,6 @@ public class ClientsGUI extends BorderPane {
 			SearchOptions selectedSearchOption = SearchOptions.values()[searchBy];
 			switch (selectedSearchOption) {
 			case NAME:
-
 				filteredClientsList.setPredicate(client -> (client.getFirstName() + " " + client.getLastName())
 						.toLowerCase().contains(searchTF.getText().toLowerCase().trim()));
 				break;
@@ -114,7 +115,9 @@ public class ClientsGUI extends BorderPane {
 		setColumns();
 		getDataBase();
 		this.filteredClientsList = new FilteredList<Client>(this.clientsList, p -> true);
-		this.clientsTable.setItems(this.filteredClientsList);
+		this.sortedClientsList = new SortedList<>(this.filteredClientsList);
+        this.sortedClientsList.comparatorProperty().bind(this.clientsTable.comparatorProperty());
+    	this.clientsTable.setItems(this.sortedClientsList);
 		this.setCenter(clientsTable);
 		BorderPane.setAlignment(clientsTable, Pos.CENTER);
 		setTableViewListner();
@@ -176,6 +179,7 @@ public class ClientsGUI extends BorderPane {
 		TableColumn<Client, String> phoneColumn = setColumn("Phone Number");
 		phoneColumn.setCellValueFactory(cellData -> cellData.getValue().phoneProperty());
 		this.clientsTable.getColumns().addAll(idColumn, firstNameColumn, lastNameColumn, phoneColumn);
+		this.clientsTable.getSortOrder().add(firstNameColumn);
 	}
 
 	public TableColumn<Client, String> setColumn(String header) {
@@ -206,6 +210,8 @@ public class ClientsGUI extends BorderPane {
 		VBox.setMargin(searchByID, new Insets(0, 0, 5, 0));
 		searchByPhone.setToggleGroup(searchOptions);
 		searchByPhone.setUserData(SearchOptions.PHONE.ordinal());
+		searchOptions.selectToggle(searchByName);
+		searchBy = SearchOptions.NAME.ordinal();
 		searchOptions.selectedToggleProperty().addListener(e -> {
 			if (searchOptions.getSelectedToggle() != null) {
 				this.searchBy = (Integer) searchOptions.getSelectedToggle().getUserData();

@@ -1,12 +1,12 @@
 
-public class MissingDataException extends Exception {
+public class InvalidDataException extends Exception {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public MissingDataException(String message) {
+	public InvalidDataException(String message) {
 		super(message);
 	}
 

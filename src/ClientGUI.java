@@ -39,6 +39,7 @@ public class ClientGUI extends BorderPane {
 	private Client currentClient;
 	private boolean disableEditTextField = true;
 	private boolean newClient;
+	private boolean dataHasChanged;
 
 	private Shape pictureFrame = new Rectangle(PICTURE_FRAME_WIDTH, PICTURE_FRAME_HIEGHT);
 
@@ -79,6 +80,7 @@ public class ClientGUI extends BorderPane {
 		setCurrentClient(client);
 		disableEditTextField(!isANewClient());
 		initClientWindow();
+		setDataHasChanged(newClient);
 	}
 
 	public ClientGUI(Client client) {
@@ -101,43 +103,54 @@ public class ClientGUI extends BorderPane {
 	protected boolean saveNewState() {
 		try {
 			if (firstNameTF.getText().isEmpty() || lastNameTF.getText().isEmpty() || phoneTF.getText().isEmpty()) {
-				throw new MissingDataException(
+				throw new InvalidDataException(
 						"Error!\nOne of the following fields are empty: Firstname, Lastname, Phonenumber.");
 			}
 			if (!(firstNameTF.getText().equals(getCurrentClient().getFirstName()))) {
 				getCurrentClient().setFirstName(firstNameTF.getText());
+				setDataHasChanged(true);
 			}
 			if (!(lastNameTF.getText().equals(getCurrentClient().getLastName()))) {
 				getCurrentClient().setLastName(lastNameTF.getText());
+				setDataHasChanged(true);
 			}
 			String phone = Client.fixPhoneNumber(phoneTF.getText());
 			checkPhoneNumber(phone);
 			if (!(phone.equals(getCurrentClient().getPhoneNumber()))) {
 				getCurrentClient().setPhoneNumber(phone);
+				setDataHasChanged(true);
+				this.phoneTF.setText(phone);
+			}
+			if (!genderCB.getValue().equals(getCurrentClient().getGender())) {
+				getCurrentClient().setGender(genderCB.getValue());
+				setDataHasChanged(true);
 			}
 			if (!emailTF.getText().isEmpty() && !(emailTF.getText().equals(getCurrentClient().getEmail()))) {
 				getCurrentClient().setEmail(emailTF.getText());
+				setDataHasChanged(true);
+
 			}
 			checkForValidDate();
 			if (!(maritalStatusCB.getValue().equals(getCurrentClient().getMaritalStatus()))) {
 				getCurrentClient().setMaritalStatus(maritalStatusCB.getValue());
+				setDataHasChanged(true);
 			}
 			saveStreetState();
 			return true;
-		} catch (MissingDataException ex) {
+		} catch (InvalidDataException ex) {
 			showAlert(ex.getMessage());
 			return false;
 		}
 	}
 
-	private void checkPhoneNumber(String phone) throws MissingDataException {
+	private void checkPhoneNumber(String phone) throws InvalidDataException {
 		try {
 			if (phone.length() > MAX_PHONE_NUMBER_LENGTH || phone.charAt(0) != '0') {
 				throw new Exception();
 			}
 			Integer.parseInt(phone);
 		} catch (Exception e) {
-			throw new MissingDataException("Error!\nInvalid phone number.");
+			throw new InvalidDataException("Error!\nInvalid phone number.");
 		}
 	}
 
@@ -149,44 +162,44 @@ public class ClientGUI extends BorderPane {
 		alert.showAndWait();
 	}
 
-	private void saveStreetState() {
+	private void saveStreetState() throws InvalidDataException {
 		Integer houseNumber = getCurrentClient().getHouseNumber();
-		Integer apartment = getCurrentClient().getApartment();
 		Integer zipcode = getCurrentClient().getZipcode();
 		try {
 			if (!cityTF.getText().isEmpty() && !(cityTF.getText().equals(getCurrentClient().getCity()))) {
 				getCurrentClient().setCity(cityTF.getText());
+				setDataHasChanged(true);
 			}
 			if (!streetNameTF.getText().isEmpty()
 					&& !(streetNameTF.getText().equals(getCurrentClient().getStreetName()))) {
 				getCurrentClient().setStreetName(streetNameTF.getText());
+				setDataHasChanged(true);
 			}
 			if (!houseNumberTF.getText().isEmpty()) {
 				houseNumber = Integer.parseInt(houseNumberTF.getText());
-				if (houseNumber != getCurrentClient().getHouseNumber()) {
+				if (!houseNumber.equals(getCurrentClient().getHouseNumber())) {
 					getCurrentClient().setHouseNumber(houseNumber);
-
+					setDataHasChanged(true);
 				}
 			}
-			if (!apartmentTF.getText().isEmpty()) {
-				apartment = Integer.parseInt(apartmentTF.getText());
-				if (apartment != getCurrentClient().getApartment()) {
-					getCurrentClient().setApartment(apartment);
-
-				}
+			if (!apartmentTF.getText().isEmpty() && !apartmentTF.getText().equals(getCurrentClient().getApartment())) {
+				getCurrentClient().setApartment(apartmentTF.getText());
+				setDataHasChanged(true);
 			}
 			if (!zipcodeTF.getText().isEmpty()) {
 				zipcode = Integer.parseInt(zipcodeTF.getText());
-				if (zipcode != getCurrentClient().getZipcode()) {
+				if (!zipcode.equals(getCurrentClient().getZipcode())) {
 					getCurrentClient().setZipcode(zipcode);
-
+					setDataHasChanged(true);
 				}
 			}
 		} catch (NumberFormatException ex) {
+			throw new InvalidDataException(
+					"Error!\nOne of the following fields has invalid data: Housenumber, Apartment, Zipcode.");
 		}
 	}
 
-	private void checkForValidDate() throws MissingDataException {
+	private void checkForValidDate() throws InvalidDataException {
 		int day = dayOfBirthCB.getValue();
 		Month month = monthOfBirthCB.getValue();
 		int year = getCurrentClient().getBirthDay().getYear();
@@ -196,15 +209,19 @@ public class ClientGUI extends BorderPane {
 				year = Integer.parseInt(yearOfBirthTF.getText());
 			}
 		} catch (NumberFormatException ex) {
+			throw new InvalidDataException("Error!\nYear of birth is not valid");
 		}
 		try {
 			tempDate = LocalDate.of(year, month, day);
 		} catch (DateTimeException ex) {
-			throw new MissingDataException("Error!\nDate of birth is not valid");
+			throw new InvalidDataException("Error!\nDate of birth is not valid");
 		}
-		if ((tempDate != null) && (tempDate != getCurrentClient().getBirthDay())) {
-			getCurrentClient().setBirthDay(tempDate);
-			ageTF.setText(getCurrentClient().getAge().toString());
+		if (tempDate != null) {
+			if (!tempDate.equals(getCurrentClient().getBirthDay())) {
+				getCurrentClient().setBirthDay(tempDate);
+				setDataHasChanged(true);
+				ageTF.setText(getCurrentClient().getAge().toString());
+			}
 		}
 	}
 
@@ -225,18 +242,16 @@ public class ClientGUI extends BorderPane {
 		maritalStatusCB.setDisable(disabledEditTextField());
 	}
 
-//	public void actionHandled(ActionEvent e) {
-//		((Command) e.getSource()).Execute();
-//	}
-
 	/* Setters And Getters */
 	public void setClientWindowLayout() {
 		HBox picturePane = new HBox(pictureFrame);
 		Label firstNameLabel = new Label("First Name:");
 		firstNameTF = new TextField(getCurrentClient().getFirstName());
+		firstNameTF.setPromptText("Ex: Israel");
 
 		Label lastNameLabel = new Label("Last Name:");
 		lastNameTF = new TextField(getCurrentClient().getLastName());
+		lastNameTF.setPromptText("Ex: Israeli");
 
 		Label idLabel = new Label("ID:");
 		idTF = new TextField(getCurrentClient().getID().toString());
@@ -254,8 +269,11 @@ public class ClientGUI extends BorderPane {
 
 		Label phoneLabel = new Label("Phone Number:");
 		phoneTF = new TextField(getCurrentClient().getPhoneNumber());
+		phoneTF.setPromptText("Ex: 000-0000000");
+
 		Label emailLabel = new Label("EMail:");
 		emailTF = new TextField(getCurrentClient().getEmail());
+		emailTF.setPromptText("Ex: A@a");
 		emailTF.setMinWidth(EMAIL_TEXT_FIELD_LENGTH);
 		HBox thirdRow = setRow(phoneLabel, phoneTF, emailLabel, emailTF);
 		clientDetails.add(thirdRow, 0, 2);
@@ -292,19 +310,26 @@ public class ClientGUI extends BorderPane {
 	public VBox setAddressLayout() {
 		Label streetNameLabel = new Label("Street:");
 		streetNameTF = new TextField(getCurrentClient().getStreetName());
+		streetNameTF.setPromptText("Ex: Israel Ben Gurion");
+
 		Label houseNumberLabel = new Label("House Number:");
 		houseNumberTF = new TextField(getCurrentClient().getHouseNumber().toString());
 		houseNumberTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
+		houseNumberTF.setPromptText("Ex: 1");
+
 		Label apartmentLabel = new Label("Apartment:");
 		apartmentTF = new TextField(getCurrentClient().getApartment().toString());
 		apartmentTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
+		apartmentTF.setPromptText("Ex: 1");
 		HBox streetDetails = setRow(streetNameLabel, streetNameTF, houseNumberLabel, houseNumberTF, apartmentLabel,
 				apartmentTF);
 
 		Label cityLabel = new Label("City:");
 		cityTF = new TextField(getCurrentClient().getCity());
+		cityTF.setPromptText("Ex: Tel-Aviv");
 		Label zipcodeLabel = new Label("Zipcode:");
 		zipcodeTF = new TextField(getCurrentClient().getZipcode().toString());
+		zipcodeTF.setPromptText("Ex: 12345");
 		HBox cityDetails = setRow(cityLabel, cityTF, zipcodeLabel, zipcodeTF);
 
 		VBox address = new VBox(streetDetails, cityDetails);
@@ -326,6 +351,7 @@ public class ClientGUI extends BorderPane {
 		Integer year = getCurrentClient().getBirthDay().getYear();
 		Label yearLabel = new Label("Year:");
 		yearOfBirthTF = new TextField(year.toString());
+		yearOfBirthTF.setPromptText("Ex: 1900");
 		yearOfBirthTF.setMaxWidth(SMALL_TEXT_FIELD_SIZE);
 
 		Label ageLabel = new Label("Age:");
@@ -383,6 +409,14 @@ public class ClientGUI extends BorderPane {
 
 	protected void setNewClient(boolean newClient) {
 		this.newClient = newClient;
+	}
+
+	protected boolean isDataChanged() {
+		return dataHasChanged;
+	}
+
+	protected void setDataHasChanged(boolean dataHasChanged) {
+		this.dataHasChanged = dataHasChanged;
 	}
 
 }
