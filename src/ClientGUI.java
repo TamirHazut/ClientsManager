@@ -1,3 +1,4 @@
+import java.io.File;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Month;
@@ -19,15 +20,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
 public class ClientGUI extends BorderPane {
 	private final static int MIN_SCEONDERY_STAGE_HEIGTH = 530;
 	private final static int MIN_SCEONDERY_STAGE_WIDTH = 650;
-	private final static int PICTURE_FRAME_WIDTH = 200;
-	private final static int PICTURE_FRAME_HIEGHT = 400;
 	private final static int SMALL_TEXT_FIELD_SIZE = 50;
 	private final static int NUM_OF_DAYS_A_MONTH = 31;
 	private final static int EMAIL_TEXT_FIELD_LENGTH = 325;
@@ -41,7 +38,7 @@ public class ClientGUI extends BorderPane {
 	private boolean newClient;
 	private boolean dataHasChanged;
 
-	private Shape pictureFrame = new Rectangle(PICTURE_FRAME_WIDTH, PICTURE_FRAME_HIEGHT);
+	private ProfilePicture profilePicture;
 
 	private final Insets fieldsInsets = new Insets(5);
 	private final Insets otherInsets = new Insets(10);
@@ -244,7 +241,9 @@ public class ClientGUI extends BorderPane {
 
 	/* Setters And Getters */
 	public void setClientWindowLayout() {
-		HBox picturePane = new HBox(pictureFrame);
+		profilePicture = new ProfilePicture(getCurrentClient(),new File(getCurrentClient().getProfilePicture()));
+		setPictureListner();
+
 		Label firstNameLabel = new Label("First Name:");
 		firstNameTF = new TextField(getCurrentClient().getFirstName());
 		firstNameTF.setPromptText("Ex: Israel");
@@ -296,9 +295,18 @@ public class ClientGUI extends BorderPane {
 		setUpdateButton();
 		this.setCenter(clientDetails);
 		BorderPane.setAlignment(clientDetails, Pos.CENTER);
-		BorderPane.setMargin(picturePane, otherInsets);
-		this.setLeft(picturePane);
-		BorderPane.setAlignment(picturePane, Pos.TOP_LEFT);
+		BorderPane.setMargin(profilePicture, otherInsets);
+		this.setLeft(profilePicture);
+		BorderPane.setAlignment(profilePicture, Pos.TOP_LEFT);
+
+	}
+
+	private void setPictureListner() {
+		profilePicture.setOnMouseClicked(e -> {
+			if (!disabledEditTextField()) {
+				profilePicture.browsePicture();
+			}
+		});
 	}
 
 	public HBox setRow(Node... nodes) {

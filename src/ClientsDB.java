@@ -20,7 +20,7 @@ abstract class ClientsDB {
 					+ "`Gender`	TEXT NOT NULL," + "`MaritalStatus`	TEXT NOT NULL," + "`DayOfBirth`	INTEGER NOT NULL,"
 					+ "`MonthOfBirth`	INTEGER NOT NULL," + "`YearOfBirth`	INTEGER NOT NULL," + "`City`	TEXT,"
 					+ "`Street`	TEXT," + "`HouseNumber`	INTEGER," + "`Apartment`	TEXT," + "`Zipcode`	INTEGER,"
-					+ "PRIMARY KEY(`ID`));";
+					+ "`ProfilePicture`	TEXT," + "PRIMARY KEY(`ID`));";
 			PreparedStatement prestate = connection.prepareStatement(query);
 			prestate.executeUpdate();
 			prestate.close();
@@ -51,9 +51,10 @@ abstract class ClientsDB {
 				Integer houseNumber = result.getInt("HouseNumber");
 				String apartment = result.getString("Apartment");
 				Integer zipcode = result.getInt("Zipcode");
+				String profilePicture = result.getString("ProfilePicture");
 				Client client = new Client(firstName, lastName, id, phoneNumber, email,
 						LocalDate.of(yearOfBirth, monthOfBirth, dayOfBirth), gender, city, street, houseNumber,
-						apartment, zipcode, maritalStatus);
+						apartment, zipcode, maritalStatus, profilePicture);
 				list.add(client);
 			}
 			prestate.close();
@@ -96,8 +97,8 @@ abstract class ClientsDB {
 
 	public static boolean writeNewClient(Client client) {
 		try (Connection connection = DriverManager.getConnection(CONNECTION_PROPERTY);) {
-			String query = "INSERT INTO Clients(FirstName,LastName,ID,PhoneNumber,Email,Gender,MaritalStatus,DayOfBirth,MonthOfBirth,YearOfBirth,City,Street,HouseNumber,Apartment,Zipcode) "
-					+ "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+			String query = "INSERT INTO Clients(FirstName,LastName,ID,PhoneNumber,Email,Gender,MaritalStatus,DayOfBirth,MonthOfBirth,YearOfBirth,City,Street,HouseNumber,Apartment,Zipcode,ProfilePicture) "
+					+ "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 			PreparedStatement prestate = connection.prepareStatement(query);
 			prestate.setString(1, client.getFirstName());
 			prestate.setString(2, client.getLastName());
@@ -114,6 +115,20 @@ abstract class ClientsDB {
 			prestate.setInt(13, client.getHouseNumber());
 			prestate.setString(14, client.getApartment());
 			prestate.setInt(15, client.getZipcode());
+			prestate.setString(16, client.getProfilePicture());
+			prestate.executeUpdate();
+			prestate.close();
+		} catch (SQLException ex) {
+			return false;
+		}
+		return true;
+	}
+	public static boolean writeClientProfilePicture(Client client) {
+		try (Connection connection = DriverManager.getConnection(CONNECTION_PROPERTY);) {
+			String query = "UPDATE Clients SET ProfilePicture = ? WHERE ID = ?";
+			PreparedStatement prestate = connection.prepareStatement(query);
+			prestate.setString(1, client.getProfilePicture());
+			prestate.setInt(2, client.getID());
 			prestate.executeUpdate();
 			prestate.close();
 		} catch (SQLException ex) {

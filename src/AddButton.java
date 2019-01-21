@@ -1,7 +1,7 @@
 public class AddButton extends ClientsGUIButtons {
 	public AddButton(ClientsGUI gui) {
 		super(gui);
-		this.setText("Add");
+		this.setText("New Client");
 	}
 
 	@Override

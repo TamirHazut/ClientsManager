@@ -1,3 +1,4 @@
+import java.io.File;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -23,16 +24,17 @@ public class Client {
 	private String apartment;
 	private Integer zipcode;
 	private String maritalStatus;
+	private String profilePicture;
 
 	public Client(Integer id) {
 		this(DEFAULT_STRING, DEFAULT_STRING, id, DEFAULT_STRING, DEFAULT_STRING, LocalDate.now(), DEFAULT_GENDER,
 				DEFAULT_STRING, DEFAULT_STRING, DEFAULT_INTEGER, DEFAULT_STRING, DEFAULT_INTEGER,
-				DEFAULT_MARITAL_STATUS);
+				DEFAULT_MARITAL_STATUS, ProfilePicture.DEFAULT_IMAGE);
 	}
 
 	public Client(String firstName, String lastName, Integer id, String phoneNumber, String email, LocalDate birthDay,
 			String gender, String city, String streetName, Integer houseNumber, String apartment, Integer zipcode,
-			String maritalStatus) {
+			String maritalStatus, String profilePicture) {
 		this.firstName = new SimpleStringProperty(firstName);
 		this.lastName = new SimpleStringProperty(lastName);
 		this.id = new SimpleStringProperty(id.toString());
@@ -46,6 +48,7 @@ public class Client {
 		this.apartment = apartment;
 		this.zipcode = zipcode;
 		this.maritalStatus = maritalStatus;
+		this.profilePicture = profilePicture;
 	}
 
 	/* Setters And Getters */
@@ -169,6 +172,15 @@ public class Client {
 
 	protected Long getAge() {
 		return ChronoUnit.YEARS.between(getBirthDay(), LocalDate.now());
+	}
+
+	protected String getProfilePicture() {
+		return profilePicture;
+	}
+
+	protected void setProfilePicture(String pictureFile) {
+		File file = new File(ProfilePicture.DEFAULT_IMAGE_FOLDER + pictureFile);
+		this.profilePicture = (file.exists() ? file.getAbsolutePath() : ProfilePicture.DEFAULT_IMAGE);
 	}
 
 	/* TableView Properties */
