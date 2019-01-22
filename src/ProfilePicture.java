@@ -14,8 +14,8 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 public class ProfilePicture extends HBox {
-	public final static String DEFAULT_IMAGE_FOLDER = System.getProperty("user.home") + "\\Clients\\";
-	public final static String DEFAULT_IMAGE = "res\\images\\Default.png";
+	public final static String DEFAULT_PROFILE_PICTURES_FOLDER = System.getProperty("user.home") + "\\Clients\\";
+	public final static String DEFAULT_IMAGE = "images/Default.png";
 	private final static int PICTURE_FRAME_WIDTH = 200;
 	private final static int PICTURE_FRAME_HEIGTH= 500;
 	private ImageView profilePicture = new ImageView();
@@ -24,6 +24,10 @@ public class ProfilePicture extends HBox {
 	public ProfilePicture(Client client, File filePath) {
 		this.client = client;
 		try {
+			File file = new File(DEFAULT_PROFILE_PICTURES_FOLDER);
+			if (!file.exists()) {
+				file.mkdirs();
+			}
 			setProfilePicture(filePath);
 			this.getChildren().add(profilePicture);
 		} catch (FileNotFoundException e) {
@@ -35,7 +39,7 @@ public class ProfilePicture extends HBox {
 		try (FileInputStream imageIS = new FileInputStream(filePath)) {
 			image = new Image(imageIS);
 		} catch (IOException e) {
-			image = new Image(new FileInputStream(new File(DEFAULT_IMAGE)));
+			image = new Image(this.getClass().getClassLoader().getResourceAsStream(DEFAULT_IMAGE));
 		}
 		this.setPrefWidth(PICTURE_FRAME_WIDTH);
 		profilePicture.fitWidthProperty().bind(this.prefWidthProperty());
@@ -69,7 +73,7 @@ public class ProfilePicture extends HBox {
 				String filePath = file.getAbsolutePath();
 				String[] filePathSplitted = filePath.split("[.]+");
 				String fileName = this.client.idProperty().get() + "." + filePathSplitted[filePathSplitted.length - 1];
-				String dest = DEFAULT_IMAGE_FOLDER + fileName;
+				String dest = DEFAULT_PROFILE_PICTURES_FOLDER + fileName;
 				copyFile(filePath, dest);
 				this.client.setProfilePicture(fileName);
 				ClientsDB.writeClientProfilePicture(this.client);

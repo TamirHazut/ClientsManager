@@ -302,7 +302,7 @@ public class ClientGUI extends BorderPane {
 	}
 
 	private void setPictureListner() {
-		profilePicture.setOnMouseClicked(e -> {
+		profilePicture.getProfilePicture().setOnMouseClicked(e -> {
 			if (!disabledEditTextField()) {
 				profilePicture.browsePicture();
 			}

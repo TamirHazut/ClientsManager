@@ -179,7 +179,7 @@ public class Client {
 	}
 
 	protected void setProfilePicture(String pictureFile) {
-		File file = new File(ProfilePicture.DEFAULT_IMAGE_FOLDER + pictureFile);
+		File file = new File(ProfilePicture.DEFAULT_PROFILE_PICTURES_FOLDER + pictureFile);
 		this.profilePicture = (file.exists() ? file.getAbsolutePath() : ProfilePicture.DEFAULT_IMAGE);
 	}
 

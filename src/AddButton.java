@@ -1,7 +1,12 @@
+import javafx.scene.image.Image;
+
 public class AddButton extends ClientsGUIButtons {
+	private final static String ADD_BUTTON_ICON = "images/Add.png";
+
+
 	public AddButton(ClientsGUI gui) {
 		super(gui);
-		this.setText("New Client");
+		this.setBackGroundImage(new Image(this.getClass().getClassLoader().getResource(ADD_BUTTON_ICON).toString()));
 	}
 
 	@Override
@@ -11,7 +16,7 @@ public class AddButton extends ClientsGUIButtons {
 			this.client = new Client(id);
 			if (!newClient()) {
 				gui.getClientList().add(this.client);
-				gui.resetSearch();
+				gui.getSearchPane().resetSearch();
 			}
 		}
 	}
@@ -20,5 +25,6 @@ public class AddButton extends ClientsGUIButtons {
 		ClientGUI gui = new ClientGUI(this.client, true);
 		return gui.isANewClient();
 	}
+
 
 }
